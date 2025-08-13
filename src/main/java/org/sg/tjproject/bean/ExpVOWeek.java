@@ -5,7 +5,7 @@ import lombok.Data;
 
 @Data
 public class ExpVOWeek {
-    private String date;
+
     @ExcelProperty("供电单位编码")
     private String mgtOrgCode;
     @ExcelProperty("供电单位名称")

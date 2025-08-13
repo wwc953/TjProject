@@ -43,31 +43,41 @@ import org.sg.tjproject.bean.ExpVOWeek;
 import org.sg.tjproject.bean.IndexOrNameData;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.ResourceLoader;
+import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
+import org.springframework.core.io.support.ResourcePatternResolver;
+import org.springframework.util.ResourceUtils;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.*;
 
 @Slf4j
 @SpringBootTest
 public class TjTestWeek {
-    String index = "loglnfo";
+    String index = "loglnfo_222";
     String type = "log";
     String path = "src/main/resources/xlsx2/";
 
     @Autowired
     RestHighLevelClient restHighLevelClient;
 
+    @Autowired
+    ResourceLoader resourceLoader;
+
     @Test
     public void doAll() throws Exception {
         createIndex();
-        List<String> list = Arrays.asList("2025-08-04.xlsx", "2025-08-05.xlsx", "2025-08-06.xlsx", "2025-08-07.xlsx", "2025-08-08.xlsx");
-        list.forEach(fileName -> {
+        Resource resource = resourceLoader.getResource("classpath:xlsx2/");
+        File[] files = resource.getFile().listFiles();
+        for (File file : files) {
             try {
-                initData(path + fileName);
+                initData(file);
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }
-        });
-
+        }
     }
 
     boolean exists(String index) throws Exception {
@@ -93,8 +103,9 @@ public class TjTestWeek {
     }
 
 
-    public void initData(String fileName) throws Exception {
-        EasyExcel.read(fileName, IndexOrNameData.class, new ReadListener<IndexOrNameData>() {
+    public void initData(File file) throws Exception {
+//        System.out.println(file.getAbsolutePath());
+        EasyExcel.read(file, IndexOrNameData.class, new ReadListener<IndexOrNameData>() {
             int BATCH_COUNT = 500;
             List dataList = ListUtils.newArrayListWithExpectedSize(BATCH_COUNT);
             int total = 0;
@@ -125,7 +136,7 @@ public class TjTestWeek {
                     total += dataList.size();
                     batchCreateUserDocument(dataList);
                 }
-                System.out.println(fileName + "===总插入条数===" + total);
+                System.out.println(file.getName() + "===总插入条数===" + total);
             }
         }).sheet().doRead();
 
