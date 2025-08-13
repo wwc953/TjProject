@@ -51,7 +51,7 @@ import java.util.*;
 public class TjTestWeek {
     String index = "loglnfo";
     String type = "log";
-    String path = "/Users/wangwc/IdeaProjects/TjProject/src/main/resources/xlsx2/";
+    String path = "src/main/resources/xlsx2/";
 
     @Autowired
     RestHighLevelClient restHighLevelClient;

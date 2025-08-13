@@ -59,7 +59,7 @@ public class TjTestOneDay {
     String day = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"));
     String index = "loglnfo_" + day;
     String type = "log";
-    String path = "/Users/wangwc/IdeaProjects/TjProject/src/main/resources/xlsx/";
+    String path = "src/main/resources/xlsx/";
 
     @Autowired
     RestHighLevelClient restHighLevelClient;
@@ -213,7 +213,7 @@ public class TjTestOneDay {
         return exists;
     }
 
-    @Test
+//    @Test
     void createIndex() throws Exception {
         if (exists(index)) {
             System.out.println("已存在索引");
