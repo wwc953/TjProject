@@ -6,6 +6,7 @@ import com.alibaba.excel.read.listener.ReadListener;
 import com.alibaba.excel.util.ListUtils;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
+import com.google.common.collect.Maps;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.beanutils.PropertyUtils;
@@ -39,6 +40,7 @@ import org.elasticsearch.search.builder.SearchSourceBuilder;
 import org.junit.jupiter.api.Test;
 import org.sg.tjproject.bean.ExpVOWeek;
 import org.sg.tjproject.bean.IndexOrNameData;
+import org.sg.tjproject.utils.DynamicEasyExcelExportUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.core.io.Resource;
@@ -48,6 +50,8 @@ import org.springframework.core.io.support.ResourcePatternResolver;
 import org.springframework.util.ResourceUtils;
 
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.*;
 
@@ -339,9 +343,9 @@ public class TjTestWeek {
 //                "def field_value = doc['operView.keyword'].value; def list_values = ['退出机器人','连接成功','连接失败','关闭助理','通知唤醒','初始化机器人','点击唤醒','语音唤醒']; if (list_values.contains(field_value)) { return false; } else { return true; }", Collections.emptyMap(), Collections.emptyMap())
 //        ));
 
-        FilterAggregationBuilder count_zl = AggregationBuilders.filter("count_zl", QueryBuilders.boolQuery().mustNot(QueryBuilders.termsQuery("operView.keyword",
+        FilterAggregationBuilder count_bul = AggregationBuilders.filter("count_zl", QueryBuilders.boolQuery().mustNot(QueryBuilders.termsQuery("operView.keyword",
                 "退出机器人", "连接成功", "连接失败", "关闭助理", "通知唤醒", "初始化机器人", "点击唤醒", "语音唤醒")));
-        dateAgg.subAggregation(count_zl);
+        dateAgg.subAggregation(count_bul);
         mgt.subAggregation(dateAgg);
 
         searchSourceBuilder.aggregation(mgt);
@@ -352,6 +356,96 @@ public class TjTestWeek {
         SearchResponse searchResponse = restHighLevelClient.search(searchRequest);
         System.out.println(searchResponse);
 
+        Map<String, List<Map<String, Object>>> result = new LinkedHashMap<>();
+        ParsedStringTerms mgtorgAgg = searchResponse.getAggregations().get("mgtorg_agg");
+        List<? extends Terms.Bucket> buckets = mgtorgAgg.getBuckets();
+        for (Terms.Bucket bucket : buckets) {
+//            ExpVOWeek expVO = new ExpVOWeek();
+//            expVO.setMgtOrgCode(bucket.getKeyAsString());
+//            expVO.setSyrc(bucket.getDocCount());
+
+            List<Map<String, Object>> objList = new ArrayList<>();
+            ParsedStringTerms timeDatehis = (ParsedStringTerms) bucket.getAggregations().getAsMap().get("time_datehis");
+            timeDatehis.getBuckets().stream().forEach(v -> {
+                Map<String, Object> mapval = new HashMap<>();
+                Map<String, Aggregation> map = v.getAggregations().asMap();
+                mapval.put("date", v.getKeyAsString());
+                mapval.put("mgtOrgCode", bucket.getKeyAsString());
+
+                ParsedCardinality dis_rs = (ParsedCardinality) map.get("dis_rs");
+                mapval.put("rs", dis_rs.getValue());
+
+                ParsedFilter filter_yyhx = (ParsedFilter) map.get("filter_yyhx");
+                mapval.put("yyhx", filter_yyhx.getDocCount());
+
+                ParsedFilter filter_zs = (ParsedFilter) map.get("filter_zs");
+                mapval.put("zs", filter_zs.getDocCount());
+
+                ParsedFilter count_zl = (ParsedFilter) map.get("count_zl");
+                mapval.put("zl", count_zl.getDocCount());
+
+                objList.add(mapval);
+            });
+
+            result.put(bucket.getKeyAsString(), objList);
+        }
+
+        System.out.println(JSON.toJSONString(result));
+
+        List<String> proList = Arrays.asList("rs", "yyhx", "zs", "zl");
+        LinkedHashMap<String, String> headColumnMap = Maps.newLinkedHashMap();
+        headColumnMap.put("mgtOrgCode", "单位");
+        result.forEach((k, dateList) -> {
+            for (String key : proList) {
+                for (Map<String, Object> obj : dateList) {
+                    headColumnMap.put(key + obj.get("date").toString(), key + "," + obj.get("date").toString());
+                }
+            }
+        });
+
+        List<Map<String, Object>> dataList = new ArrayList<>();
+        result.forEach((k, dateList) -> {
+            Map<String, Object> dataMap = Maps.newHashMap();
+            dataMap.put("mgtOrgCode", k);
+            for (String key : proList) {
+                for (Map<String, Object> obj : dateList) {
+                    dataMap.put(key + obj.get("date").toString(), obj.get(key).toString());
+                }
+            }
+            dataList.add(dataMap);
+        });
+
+        byte[] stream = DynamicEasyExcelExportUtils.exportExcelFile(headColumnMap, dataList);
+        FileOutputStream outputStream = new FileOutputStream(new File(path + "easyexcel-export-user5.xlsx"));
+        outputStream.write(stream);
+        outputStream.close();
+
+    }
+
+    @Test
+    public void test() throws Exception {
+        LinkedHashMap<String, String> headColumnMap = Maps.newLinkedHashMap();
+        headColumnMap.put("mgtOrgCode", "单位");
+        for (int i = 0; i < 5; i++) {
+            headColumnMap.put("name" + i, "学生数据1,姓名" + i);
+        }
+        for (int i = 0; i < 5; i++) {
+            headColumnMap.put("sex" + i, "学生数据2,性别" + i);
+        }
+
+        List<Map<String, Object>> dataList = new ArrayList<>();
+        for (int i = 0; i < 5; i++) {
+            Map<String, Object> dataMap = Maps.newHashMap();
+            dataMap.put("mgtOrgCode", "一年级");
+            dataMap.put("name" + i, "张三99" + i);
+            dataMap.put("sex" + i, "男" + i);
+            dataList.add(dataMap);
+        }
+
+        byte[] stream = DynamicEasyExcelExportUtils.exportExcelFile(headColumnMap, dataList);
+        FileOutputStream outputStream = new FileOutputStream(new File(path + "easyexcel-export-user5.xlsx"));
+        outputStream.write(stream);
+        outputStream.close();
     }
 
 
