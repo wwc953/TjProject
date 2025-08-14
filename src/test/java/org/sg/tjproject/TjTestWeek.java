@@ -22,10 +22,7 @@ import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.client.RestHighLevelClient;
 import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.common.xcontent.XContentType;
-import org.elasticsearch.index.query.BoolQueryBuilder;
-import org.elasticsearch.index.query.PrefixQueryBuilder;
-import org.elasticsearch.index.query.QueryBuilders;
-import org.elasticsearch.index.query.TermsQueryBuilder;
+import org.elasticsearch.index.query.*;
 import org.elasticsearch.script.Script;
 import org.elasticsearch.script.ScriptType;
 import org.elasticsearch.search.aggregations.Aggregation;
@@ -298,18 +295,64 @@ public class TjTestWeek {
 
 
     /**
-     *
      * 一周 每天
      * 人数 类别
-     *
+     * <p>
      * df3 = df[df["当前操作界面"].isin(["点击唤醒","语音唤醒"])]#语音唤醒 类别
-     *
+     * <p>
      * df3 = df3[~df3["当前操作界面"].isin(["退出机器人","连接成功","连接失败","关闭助理","通知唤醒","初始化机器人","点击唤醒","语音唤醒"])] #指令 类别
-     *
-     *df3 = df[df["当前操作界面"].isin(["查询知识库","查询知识详情","知识考试","大模型数据","练习题库"])] #知识类 类别
-     *
+     * <p>
+     * df3 = df[df["当前操作界面"].isin(["查询知识库","查询知识详情","知识考试","大模型数据","练习题库"])] #知识类 类别
      */
+    @Test
+    public void weekLjDay() throws Exception {
+        SearchRequest searchRequest = new SearchRequest(index);
+        SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
+        BoolQueryBuilder rootQuery = QueryBuilders.boolQuery();
+//        TermsQueryBuilder rs = QueryBuilders.termsQuery("operView.keyword", "退出机器人", "连接成功", "连接失败", "关闭助理", "通知唤醒", "初始化机器人");
+//        rootQuery.mustNot(rs);
 
+        searchSourceBuilder.size(0);
+        searchSourceBuilder.query(rootQuery);
+
+        TermsAggregationBuilder mgt = AggregationBuilders.terms("mgtorg_agg")
+                .script(getMgtOrgCodeScript(5)).size(2000).order(BucketOrder.key(true));
+
+        TermsAggregationBuilder dateAgg = AggregationBuilders.terms("time_datehis")
+                .script(new Script(ScriptType.INLINE, Script.DEFAULT_SCRIPT_LANG,
+                        "def time = doc['systemTime.keyword'].value;def beginIndex =time.indexOf(' ');def domain = time.substring(0,beginIndex);return domain", Collections.emptyMap(), Collections.emptyMap())
+                ).size(2000).order(BucketOrder.key(true));
+
+        CardinalityAggregationBuilder rsf = AggregationBuilders.cardinality("dis_rs").field("handleId.keyword");
+        dateAgg.subAggregation(rsf);
+
+        TermsQueryBuilder yyhx = QueryBuilders.termsQuery("operView.keyword", "点击唤醒", "语音唤醒");
+        FilterAggregationBuilder filterYyhx = AggregationBuilders.filter("filter_yyhx", yyhx);
+        dateAgg.subAggregation(filterYyhx);
+
+        TermsQueryBuilder zs = QueryBuilders.termsQuery("operView.keyword", "查询知识库", "查询知识详情", "知识考试", "大模型数据", "练习题库");
+        FilterAggregationBuilder filterZs = AggregationBuilders.filter("filter_zs", zs);
+        dateAgg.subAggregation(filterZs);
+
+        //指令
+//        dateAgg.subAggregation(AggregationBuilders.count("count_zl").script(new Script(ScriptType.INLINE, Script.DEFAULT_SCRIPT_LANG,
+//                "def field_value = doc['operView.keyword'].value; def list_values = ['退出机器人','连接成功','连接失败','关闭助理','通知唤醒','初始化机器人','点击唤醒','语音唤醒']; if (list_values.contains(field_value)) { return false; } else { return true; }", Collections.emptyMap(), Collections.emptyMap())
+//        ));
+
+        FilterAggregationBuilder count_zl = AggregationBuilders.filter("count_zl", QueryBuilders.boolQuery().mustNot(QueryBuilders.termsQuery("operView.keyword",
+                "退出机器人", "连接成功", "连接失败", "关闭助理", "通知唤醒", "初始化机器人", "点击唤醒", "语音唤醒")));
+        dateAgg.subAggregation(count_zl);
+        mgt.subAggregation(dateAgg);
+
+        searchSourceBuilder.aggregation(mgt);
+
+        searchRequest.source(searchSourceBuilder);
+        System.out.println(searchRequest.source().toString());
+
+        SearchResponse searchResponse = restHighLevelClient.search(searchRequest);
+        System.out.println(searchResponse);
+
+    }
 
 
     public Script getMgtOrgCodeScript(int length) {
@@ -399,5 +442,5 @@ public class TjTestWeek {
         }
         return hasFailures;
     }
-    
+
 }
