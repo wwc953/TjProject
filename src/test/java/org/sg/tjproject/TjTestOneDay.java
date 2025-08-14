@@ -66,7 +66,7 @@ public class TjTestOneDay {
 
     @Test
     public void doAll() throws Exception {
-        String fileName = "2025-08-12.xlsx";
+        String fileName = "2025-08-13.xlsx";
         createIndex();
         importData(path + fileName);
     }
@@ -201,8 +201,9 @@ public class TjTestOneDay {
         });
         dataList.add(all);
         System.out.println("da==>" + JSON.toJSONString(dataList));
+
         String fileName = path + day + "南京使用情况.xlsx";
-        EasyExcel.write(fileName, ExpVO.class).sheet("").doWrite(dataList);
+        EasyExcel.write(fileName, ExpVO.class).useDefaultStyle(false).sheet("").doWrite(dataList);
     }
 
 
@@ -213,7 +214,7 @@ public class TjTestOneDay {
         return exists;
     }
 
-//    @Test
+    //    @Test
     void createIndex() throws Exception {
         if (exists(index)) {
             System.out.println("已存在索引");
