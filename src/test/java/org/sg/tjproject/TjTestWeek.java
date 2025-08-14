@@ -184,15 +184,13 @@ public class TjTestWeek {
      * @throws Exception
      */
     @Test
-    public void moreDayTimeMgt() throws Exception {
+    public void weekLj() throws Exception {
         int days = 5;
         SearchRequest searchRequest = new SearchRequest(index);
         SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
         BoolQueryBuilder rootQuery = QueryBuilders.boolQuery();
         TermsQueryBuilder rs = QueryBuilders.termsQuery("operView.keyword", "退出机器人", "连接成功", "连接失败", "关闭助理", "通知唤醒", "初始化机器人");
         rootQuery.mustNot(rs);
-//        PrefixQueryBuilder orgNoListQu = QueryBuilders.prefixQuery("mgtOrgCode.keyword", "32401");
-//        rootQuery.filter(orgNoListQu);
 
         searchSourceBuilder.size(0);
         searchSourceBuilder.query(rootQuery);
@@ -297,6 +295,22 @@ public class TjTestWeek {
                 .useDefaultStyle(false)
                 .sheet("").doWrite(result);
     }
+
+
+    /**
+     *
+     * 一周 每天
+     * 人数 类别
+     *
+     * df3 = df[df["当前操作界面"].isin(["点击唤醒","语音唤醒"])]#语音唤醒 类别
+     *
+     * df3 = df3[~df3["当前操作界面"].isin(["退出机器人","连接成功","连接失败","关闭助理","通知唤醒","初始化机器人","点击唤醒","语音唤醒"])] #指令 类别
+     *
+     *df3 = df[df["当前操作界面"].isin(["查询知识库","查询知识详情","知识考试","大模型数据","练习题库"])] #知识类 类别
+     *
+     */
+
+
 
     public Script getMgtOrgCodeScript(int length) {
         Map<String, Object> param = new HashMap<>();

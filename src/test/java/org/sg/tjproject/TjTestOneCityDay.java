@@ -68,12 +68,12 @@ public class TjTestOneCityDay {
     }
 
     /**
-     * 南京每日统计
+     * 全省每日统计
      *
      * @throws Exception
      */
     @Test
-    public void expDayNj() throws Exception {
+    public void expDayAll() throws Exception {
         System.out.println(index);
         SearchRequest searchRequest = new SearchRequest(index);
         SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
@@ -152,35 +152,6 @@ public class TjTestOneCityDay {
         }
 
         System.out.println(JSON.toJSONString(result));
-
-//        //读取模版
-//        List<ExpVO> dataList = ListUtils.newArrayListWithExpectedSize(500);
-//        EasyExcel.read(path + "模版.xlsx", ExpVO.class, new ReadListener<ExpVO>() {
-//            @SneakyThrows
-//            @Override
-//            public void invoke(ExpVO dto, AnalysisContext analysisContext) {
-//                dataList.add(dto);
-//            }
-//
-//            @SneakyThrows
-//            @Override
-//            public void doAfterAllAnalysed(AnalysisContext analysisContext) {
-//
-//            }
-//        }).sheet().doRead();
-
-
-//        Map<String, ExpVO> collect = result.stream().collect(Collectors.toMap(ExpVO::getMgtOrgCode, v -> v));
-//        dataList.forEach(v -> {
-//            ExpVO expVO = collect.get(v.getMgtOrgCode());
-//            if (expVO != null) {
-//                String mgtOrgCodeName = v.getMgtOrgCodeName();
-//                BeanUtils.copyProperties(expVO, v);
-//                v.setMgtOrgCodeName(mgtOrgCodeName);
-//            } else {
-//                System.out.println(v.getMgtOrgCode() + "--无数据");
-//            }
-//        });
 
         ExpVO all = new ExpVO();
         all.setMgtOrgCodeName("合计");
@@ -281,16 +252,6 @@ public class TjTestOneCityDay {
     }
 
 
-/**
- * 人数 类别
- *
- * df3 = df[df["当前操作界面"].isin(["点击唤醒","语音唤醒"])]#语音唤醒 类别
- *
- * df3 = df3[~df3["当前操作界面"].isin(["退出机器人","连接成功","连接失败","关闭助理","通知唤醒","初始化机器人","点击唤醒","语音唤醒"])] #指令 类别
- *
- *df3 = df[df["当前操作界面"].isin(["查询知识库","查询知识详情","知识考试","大模型数据","练习题库"])] #知识类 类别
- *
- */
 
 
 }
