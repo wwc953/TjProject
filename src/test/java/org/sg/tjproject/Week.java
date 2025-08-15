@@ -69,7 +69,10 @@ public class Week {
         File[] files = resource.getFile().listFiles();
         for (File file : files) {
             try {
-                initData(file);
+                String fx = file.getName().split("\\.")[1];
+                if ("xlsx".equals(fx)) {
+                    initData(file);
+                }
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }
@@ -93,8 +96,7 @@ public class Week {
         searchSourceBuilder.query(rootQuery);
 
 
-        TermsAggregationBuilder mgt = AggregationBuilders.terms("mgtorg_agg")
-                .field("cityCode.keyword").size(2000).order(BucketOrder.key(true));
+        TermsAggregationBuilder mgt = AggregationBuilders.terms("mgtorg_agg").field("cityCode.keyword").size(2000).order(BucketOrder.key(true));
         CardinalityAggregationBuilder rsf = AggregationBuilders.cardinality("dis_rs").field("handleId.keyword");
         mgt.subAggregation(rsf);
 
@@ -110,16 +112,11 @@ public class Week {
         FilterAggregationBuilder filterZs = AggregationBuilders.filter("filter_zs", zs);
         mgt.subAggregation(filterZs);
 
-        TermsQueryBuilder ckzb = QueryBuilders.termsQuery("operView.keyword", "工作总览", "查询线损", "查询欠费", "查询台区异常",
-                "查询采集异常", "欠费已停电用户", "临时用电超期用户", "断相指标", "减容预警用户",
-                "临时用电超期预警用户", "综合线损", "电费回收率");
+        TermsQueryBuilder ckzb = QueryBuilders.termsQuery("operView.keyword", "工作总览", "查询线损", "查询欠费", "查询台区异常", "查询采集异常", "欠费已停电用户", "临时用电超期用户", "断相指标", "减容预警用户", "临时用电超期预警用户", "综合线损", "电费回收率");
         FilterAggregationBuilder filterckzb = AggregationBuilders.filter("filter_ckzb", ckzb);
         mgt.subAggregation(filterckzb);
 
-        TermsQueryBuilder zygd = QueryBuilders.termsQuery("operView.keyword",
-                "待办工单", "附近工单", "当前位置工单", "规划工单路径", "查询更名工单", "查询居民峰谷电变更工单",
-                "查询定比定量变更工单", "查询装拆调试工单", "查询上门服务工单", "查询农电工单", "规划工作", "创建三入走访工单"
-                , "创建充电设施维护工单", "创建巡视检查工单", "创建光伏设施维护工单");
+        TermsQueryBuilder zygd = QueryBuilders.termsQuery("operView.keyword", "待办工单", "附近工单", "当前位置工单", "规划工单路径", "查询更名工单", "查询居民峰谷电变更工单", "查询定比定量变更工单", "查询装拆调试工单", "查询上门服务工单", "查询农电工单", "规划工作", "创建三入走访工单", "创建充电设施维护工单", "创建巡视检查工单", "创建光伏设施维护工单");
         FilterAggregationBuilder filterzygd = AggregationBuilders.filter("filter_zygd", zygd);
         mgt.subAggregation(filterzygd);
 
@@ -191,13 +188,9 @@ public class Week {
         searchSourceBuilder.query(rootQuery);
 
 
-        TermsAggregationBuilder mgt = AggregationBuilders.terms("mgtorg_agg")
-                .script(getMgtOrgCodeScript(5)).size(2000).order(BucketOrder.key(true));
+        TermsAggregationBuilder mgt = AggregationBuilders.terms("mgtorg_agg").script(getMgtOrgCodeScript(5)).size(2000).order(BucketOrder.key(true));
 
-        TermsAggregationBuilder dateAgg = AggregationBuilders.terms("time_datehis")
-                .script(new Script(ScriptType.INLINE, Script.DEFAULT_SCRIPT_LANG,
-                        "def time = doc['systemTime.keyword'].value;def beginIndex =time.indexOf(' ');def domain = time.substring(0,beginIndex);return domain", Collections.emptyMap(), Collections.emptyMap())
-                ).size(2000).order(BucketOrder.key(true));
+        TermsAggregationBuilder dateAgg = AggregationBuilders.terms("time_datehis").script(new Script(ScriptType.INLINE, Script.DEFAULT_SCRIPT_LANG, "def time = doc['systemTime.keyword'].value;def beginIndex =time.indexOf(' ');def domain = time.substring(0,beginIndex);return domain", Collections.emptyMap(), Collections.emptyMap())).size(2000).order(BucketOrder.key(true));
 
 
         CardinalityAggregationBuilder rsf = AggregationBuilders.cardinality("dis_rs").field("handleId.keyword");
@@ -215,16 +208,11 @@ public class Week {
         FilterAggregationBuilder filterZs = AggregationBuilders.filter("filter_zs", zs);
         dateAgg.subAggregation(filterZs);
 
-        TermsQueryBuilder ckzb = QueryBuilders.termsQuery("operView.keyword", "工作总览", "查询线损", "查询欠费", "查询台区异常",
-                "查询采集异常", "欠费已停电用户", "临时用电超期用户", "断相指标", "减容预警用户",
-                "临时用电超期预警用户", "综合线损", "电费回收率");
+        TermsQueryBuilder ckzb = QueryBuilders.termsQuery("operView.keyword", "工作总览", "查询线损", "查询欠费", "查询台区异常", "查询采集异常", "欠费已停电用户", "临时用电超期用户", "断相指标", "减容预警用户", "临时用电超期预警用户", "综合线损", "电费回收率");
         FilterAggregationBuilder filterckzb = AggregationBuilders.filter("filter_ckzb", ckzb);
         dateAgg.subAggregation(filterckzb);
 
-        TermsQueryBuilder zygd = QueryBuilders.termsQuery("operView.keyword",
-                "待办工单", "附近工单", "当前位置工单", "规划工单路径", "查询更名工单", "查询居民峰谷电变更工单",
-                "查询定比定量变更工单", "查询装拆调试工单", "查询上门服务工单", "查询农电工单", "规划工作", "创建三入走访工单"
-                , "创建充电设施维护工单", "创建巡视检查工单", "创建光伏设施维护工单");
+        TermsQueryBuilder zygd = QueryBuilders.termsQuery("operView.keyword", "待办工单", "附近工单", "当前位置工单", "规划工单路径", "查询更名工单", "查询居民峰谷电变更工单", "查询定比定量变更工单", "查询装拆调试工单", "查询上门服务工单", "查询农电工单", "规划工作", "创建三入走访工单", "创建充电设施维护工单", "创建巡视检查工单", "创建光伏设施维护工单");
         FilterAggregationBuilder filterzygd = AggregationBuilders.filter("filter_zygd", zygd);
         dateAgg.subAggregation(filterzygd);
 
@@ -276,8 +264,7 @@ public class Week {
         result.forEach(v -> {
             for (String key : proList) {
                 try {
-                    PropertyUtils.setProperty(v, key + "Day",
-                            (long) Math.ceil(Double.valueOf(String.valueOf(PropertyUtils.getProperty(v, key))) / days));
+                    PropertyUtils.setProperty(v, key + "Day", (long) Math.ceil(Double.valueOf(String.valueOf(PropertyUtils.getProperty(v, key))) / days));
                 } catch (Exception e) {
                     throw new RuntimeException(e);
                 }
@@ -286,9 +273,7 @@ public class Week {
 
         System.out.println("result===>" + JSON.toJSONString(result));
 
-        EasyExcel.write(path + "累计一周.xlsx", ExpVOWeek.class)
-                .useDefaultStyle(false)
-                .sheet("").doWrite(result);
+        EasyExcel.write(path + "累计一周.xlsx", ExpVOWeek.class).useDefaultStyle(false).sheet("").doWrite(result);
     }
 
 
@@ -313,13 +298,9 @@ public class Week {
         searchSourceBuilder.size(0);
         searchSourceBuilder.query(rootQuery);
 
-        TermsAggregationBuilder mgt = AggregationBuilders.terms("mgtorg_agg")
-                .script(getMgtOrgCodeScript(5)).size(2000).order(BucketOrder.key(true));
+        TermsAggregationBuilder mgt = AggregationBuilders.terms("mgtorg_agg").script(getMgtOrgCodeScript(5)).size(2000).order(BucketOrder.key(true));
 
-        TermsAggregationBuilder dateAgg = AggregationBuilders.terms("time_datehis")
-                .script(new Script(ScriptType.INLINE, Script.DEFAULT_SCRIPT_LANG,
-                        "def time = doc['systemTime.keyword'].value;def beginIndex =time.indexOf(' ');def domain = time.substring(0,beginIndex);return domain", Collections.emptyMap(), Collections.emptyMap())
-                ).size(2000).order(BucketOrder.key(true));
+        TermsAggregationBuilder dateAgg = AggregationBuilders.terms("time_datehis").script(new Script(ScriptType.INLINE, Script.DEFAULT_SCRIPT_LANG, "def time = doc['systemTime.keyword'].value;def beginIndex =time.indexOf(' ');def domain = time.substring(0,beginIndex);return domain", Collections.emptyMap(), Collections.emptyMap())).size(2000).order(BucketOrder.key(true));
 
         CardinalityAggregationBuilder rsf = AggregationBuilders.cardinality("dis_rs").field("handleId.keyword");
         dateAgg.subAggregation(rsf);
@@ -337,8 +318,7 @@ public class Week {
 //                "def field_value = doc['operView.keyword'].value; def list_values = ['退出机器人','连接成功','连接失败','关闭助理','通知唤醒','初始化机器人','点击唤醒','语音唤醒']; if (list_values.contains(field_value)) { return false; } else { return true; }", Collections.emptyMap(), Collections.emptyMap())
 //        ));
 
-        FilterAggregationBuilder count_bul = AggregationBuilders.filter("count_zl", QueryBuilders.boolQuery().mustNot(QueryBuilders.termsQuery("operView.keyword",
-                "退出机器人", "连接成功", "连接失败", "关闭助理", "通知唤醒", "初始化机器人", "点击唤醒", "语音唤醒")));
+        FilterAggregationBuilder count_bul = AggregationBuilders.filter("count_zl", QueryBuilders.boolQuery().mustNot(QueryBuilders.termsQuery("operView.keyword", "退出机器人", "连接成功", "连接失败", "关闭助理", "通知唤醒", "初始化机器人", "点击唤醒", "语音唤醒")));
         dateAgg.subAggregation(count_bul);
         mgt.subAggregation(dateAgg);
 
@@ -489,8 +469,7 @@ public class Week {
     public Script getMgtOrgCodeScript(int length) {
         Map<String, Object> param = new HashMap<>();
         param.put("len", length);
-        Script script = new Script(ScriptType.INLINE, Script.DEFAULT_SCRIPT_LANG,
-                "def domain = doc['mgtOrgCode.keyword'].value; if(domain.length()<params['len']) { return domain;} else { return domain.substring(0, params['len']);}", Collections.emptyMap(), param);
+        Script script = new Script(ScriptType.INLINE, Script.DEFAULT_SCRIPT_LANG, "def domain = doc['mgtOrgCode.keyword'].value; if(domain.length()<params['len']) { return domain;} else { return domain.substring(0, params['len']);}", Collections.emptyMap(), param);
         return script;
     }
 
@@ -509,10 +488,7 @@ public class Week {
             return;
         }
         CreateIndexRequest createIndexRequest = new CreateIndexRequest(index);
-        createIndexRequest.settings(Settings.builder()
-                .put("index.number_of_shards", 1)
-                .put("index.number_of_replicas", 0)
-        );
+        createIndexRequest.settings(Settings.builder().put("index.number_of_shards", 1).put("index.number_of_replicas", 0));
         CreateIndexResponse createIndexResponse = restHighLevelClient.indices().create(createIndexRequest);
         log.info("创建index结果：{}", createIndexResponse.isAcknowledged());
     }
@@ -521,7 +497,7 @@ public class Week {
     public void initData(File file) throws Exception {
 //        System.out.println(file.getAbsolutePath());
         EasyExcel.read(file, IndexOrNameData.class, new ReadListener<IndexOrNameData>() {
-            int BATCH_COUNT = 500;
+            final int BATCH_COUNT = 500;
             List dataList = ListUtils.newArrayListWithExpectedSize(BATCH_COUNT);
             int total = 0;
 
@@ -562,8 +538,7 @@ public class Week {
 //        System.out.println("需要插入==>" + index + ",数量:" + list.size());
         BulkRequest bulkRequest = new BulkRequest();
         for (IndexOrNameData document : list) {
-            IndexRequest indexRequest = new IndexRequest(index, type)
-                    .source(JSON.toJSONString(document), XContentType.JSON);
+            IndexRequest indexRequest = new IndexRequest(index, type).source(JSON.toJSONString(document), XContentType.JSON);
             bulkRequest.add(indexRequest);
         }
         BulkResponse bulk = restHighLevelClient.bulk(bulkRequest);
