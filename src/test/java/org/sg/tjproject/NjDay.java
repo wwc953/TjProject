@@ -26,8 +26,6 @@ import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.elasticsearch.index.query.PrefixQueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.index.query.TermsQueryBuilder;
-import org.elasticsearch.script.Script;
-import org.elasticsearch.script.ScriptType;
 import org.elasticsearch.search.aggregations.Aggregation;
 import org.elasticsearch.search.aggregations.AggregationBuilders;
 import org.elasticsearch.search.aggregations.BucketOrder;
@@ -41,9 +39,7 @@ import org.elasticsearch.search.aggregations.metrics.cardinality.ParsedCardinali
 import org.elasticsearch.search.builder.SearchSourceBuilder;
 import org.junit.jupiter.api.Test;
 import org.sg.tjproject.bean.ExpVO;
-import org.sg.tjproject.bean.ExpVOWeek;
 import org.sg.tjproject.bean.IndexOrNameData;
-import org.sg.tjproject.utils.JsonUtil;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -55,7 +51,7 @@ import java.util.stream.Collectors;
 
 @Slf4j
 @SpringBootTest
-public class TjTestOneDay {
+public class NjDay {
     String day = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"));
     String index = "loglnfo_" + day;
     String type = "log";

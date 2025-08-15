@@ -51,7 +51,7 @@ import java.util.Map;
 
 @Slf4j
 @SpringBootTest
-public class TjTestOneCityDay {
+public class CityDay {
     String day = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"));
     String index = "loglnfo_" + day;
     String type = "log";
