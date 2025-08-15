@@ -86,8 +86,7 @@ public class CityDay {
         searchSourceBuilder.size(0);
         searchSourceBuilder.query(rootQuery);
 
-        TermsAggregationBuilder mgt = AggregationBuilders.terms("mgtorg_agg")
-                .field("cityCode.keyword").size(2000).order(BucketOrder.key(true));
+        TermsAggregationBuilder mgt = AggregationBuilders.terms("mgtorg_agg").field("cityCode.keyword").size(2000).order(BucketOrder.key(true));
 
         CardinalityAggregationBuilder rsf = AggregationBuilders.cardinality("dis_rs").field("handleId.keyword");
         mgt.subAggregation(rsf);
@@ -104,16 +103,11 @@ public class CityDay {
         FilterAggregationBuilder filterZs = AggregationBuilders.filter("filter_zs", zs);
         mgt.subAggregation(filterZs);
 
-        TermsQueryBuilder ckzb = QueryBuilders.termsQuery("operView.keyword", "工作总览", "查询线损", "查询欠费", "查询台区异常",
-                "查询采集异常", "欠费已停电用户", "临时用电超期用户", "断相指标", "减容预警用户",
-                "临时用电超期预警用户", "综合线损", "电费回收率");
+        TermsQueryBuilder ckzb = QueryBuilders.termsQuery("operView.keyword", "工作总览", "查询线损", "查询欠费", "查询台区异常", "查询采集异常", "欠费已停电用户", "临时用电超期用户", "断相指标", "减容预警用户", "临时用电超期预警用户", "综合线损", "电费回收率");
         FilterAggregationBuilder filterckzb = AggregationBuilders.filter("filter_ckzb", ckzb);
         mgt.subAggregation(filterckzb);
 
-        TermsQueryBuilder zygd = QueryBuilders.termsQuery("operView.keyword",
-                "待办工单", "附近工单", "当前位置工单", "规划工单路径", "查询更名工单", "查询居民峰谷电变更工单",
-                "查询定比定量变更工单", "查询装拆调试工单", "查询上门服务工单", "查询农电工单", "规划工作", "创建三入走访工单"
-                , "创建充电设施维护工单", "创建巡视检查工单", "创建光伏设施维护工单");
+        TermsQueryBuilder zygd = QueryBuilders.termsQuery("operView.keyword", "待办工单", "附近工单", "当前位置工单", "规划工单路径", "查询更名工单", "查询居民峰谷电变更工单", "查询定比定量变更工单", "查询装拆调试工单", "查询上门服务工单", "查询农电工单", "规划工作", "创建三入走访工单", "创建充电设施维护工单", "创建巡视检查工单", "创建光伏设施维护工单");
         FilterAggregationBuilder filterzygd = AggregationBuilders.filter("filter_zygd", zygd);
         mgt.subAggregation(filterzygd);
 
@@ -160,6 +154,7 @@ public class CityDay {
 
         ExpVO all = new ExpVO();
         all.setMgtOrgCode("合计");
+        all.setMgtOrgCodeName("合计");
         List<String> proList = Arrays.asList("syrs", "syrc", "zczyfz", "gzp", "zswds", "ckzb", "zygd");
         result.forEach(v -> {
             for (String key : proList) {
@@ -170,13 +165,10 @@ public class CityDay {
                     throw new RuntimeException(e);
                 }
             }
+            v.setMgtOrgCodeName(MgtOrgUtils.getCodeName(v.getMgtOrgCode()));
         });
         result.add(all);
         System.out.println("da==>" + JSON.toJSONString(result));
-
-        result.forEach(v -> {
-            v.setMgtOrgCodeName(MgtOrgUtils.getCodeName(v.getMgtOrgCode()));
-        });
 
         String fileName = path + day + "全省.xlsx";
         EasyExcel.write(fileName, ExpVO.class).useDefaultStyle(false).sheet("").doWrite(result);
@@ -197,10 +189,7 @@ public class CityDay {
             return;
         }
         CreateIndexRequest createIndexRequest = new CreateIndexRequest(index);
-        createIndexRequest.settings(Settings.builder()
-                .put("index.number_of_shards", 1)
-                .put("index.number_of_replicas", 0)
-        );
+        createIndexRequest.settings(Settings.builder().put("index.number_of_shards", 1).put("index.number_of_replicas", 0));
         CreateIndexResponse createIndexResponse = restHighLevelClient.indices().create(createIndexRequest);
         log.info("创建index结果：{}", createIndexResponse.isAcknowledged());
     }
@@ -248,8 +237,7 @@ public class CityDay {
     public Boolean batchCreateUserDocument(List<IndexOrNameData> list) throws Exception {
         BulkRequest bulkRequest = new BulkRequest();
         for (IndexOrNameData document : list) {
-            IndexRequest indexRequest = new IndexRequest(index, type)
-                    .source(JSON.toJSONString(document), XContentType.JSON);
+            IndexRequest indexRequest = new IndexRequest(index, type).source(JSON.toJSONString(document), XContentType.JSON);
             bulkRequest.add(indexRequest);
         }
         BulkResponse bulk = restHighLevelClient.bulk(bulkRequest);

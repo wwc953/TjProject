@@ -314,9 +314,7 @@ public class Week {
         FilterAggregationBuilder filterZs = AggregationBuilders.filter("filter_zs", zs);
         dateAgg.subAggregation(filterZs);
 
-        FilterAggregationBuilder count_bul = AggregationBuilders.filter("count_zl",
-                QueryBuilders.boolQuery().mustNot(QueryBuilders.termsQuery("operView.keyword",
-                        "退出机器人", "连接成功", "连接失败", "关闭助理", "通知唤醒", "初始化机器人", "点击唤醒", "语音唤醒")));
+        FilterAggregationBuilder count_bul = AggregationBuilders.filter("count_zl", QueryBuilders.boolQuery().mustNot(QueryBuilders.termsQuery("operView.keyword", "退出机器人", "连接成功", "连接失败", "关闭助理", "通知唤醒", "初始化机器人", "点击唤醒", "语音唤醒")));
         dateAgg.subAggregation(count_bul);
         mgt.subAggregation(dateAgg);
 
@@ -406,8 +404,7 @@ public class Week {
         System.out.println(JSON.toJSONString(dataList));
 
         dataList.forEach(v -> {
-            String code = v.get("mgtOrgCode").toString();
-            v.put("mgtOrgCode", MgtOrgUtils.getCodeName(code));
+            v.put("mgtOrgCode", MgtOrgUtils.getCodeName(v.get("mgtOrgCode").toString()));
         });
 
         byte[] stream = DynamicEasyExcelExportUtils.exportExcelFile(headColumnMap, dataList);

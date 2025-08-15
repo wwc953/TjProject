@@ -40,6 +40,7 @@ import org.elasticsearch.search.builder.SearchSourceBuilder;
 import org.junit.jupiter.api.Test;
 import org.sg.tjproject.bean.ExpVO;
 import org.sg.tjproject.bean.IndexOrNameData;
+import org.sg.tjproject.utils.MgtOrgUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -183,6 +184,7 @@ public class NjDay {
         });
 
         ExpVO all = new ExpVO();
+        all.setMgtOrgCode("合计");
         all.setMgtOrgCodeName("合计");
         List<String> proList = Arrays.asList("syrs", "syrc", "zczyfz", "gzp", "zswds", "ckzb", "zygd");
         dataList.forEach(v -> {
@@ -194,6 +196,7 @@ public class NjDay {
                     throw new RuntimeException(e);
                 }
             }
+            v.setMgtOrgCodeName(MgtOrgUtils.getCodeName(v.getMgtOrgCode()));
         });
         dataList.add(all);
         System.out.println("da==>" + JSON.toJSONString(dataList));
