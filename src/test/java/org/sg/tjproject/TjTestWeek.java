@@ -442,7 +442,7 @@ public class TjTestWeek {
         });
 
         byte[] stream = DynamicEasyExcelExportUtils.exportExcelFile(headColumnMap, dataList);
-        FileOutputStream outputStream = new FileOutputStream(path + "地市明细2.xlsx");
+        FileOutputStream outputStream = new FileOutputStream(path + "地市明细.xlsx");
         outputStream.write(stream);
         outputStream.close();
 
