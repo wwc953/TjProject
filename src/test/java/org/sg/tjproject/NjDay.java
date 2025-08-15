@@ -201,7 +201,7 @@ public class NjDay {
         dataList.add(all);
         System.out.println("da==>" + JSON.toJSONString(dataList));
 
-        String fileName = path + day + "南京使用情况.xlsx";
+        String fileName = path + day + "南京.xlsx";
         EasyExcel.write(fileName, ExpVO.class).useDefaultStyle(false).sheet("").doWrite(dataList);
     }
 
