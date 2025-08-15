@@ -313,7 +313,7 @@ public class TjTestWeek {
         SearchRequest searchRequest = new SearchRequest(index);
         SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
         BoolQueryBuilder rootQuery = QueryBuilders.boolQuery();
-        TermsQueryBuilder rs = QueryBuilders.termsQuery("mgtOrgCode.keyword", "32101");
+        TermsQueryBuilder rs = QueryBuilders.termsQuery("operView.keyword", "退出机器人", "连接成功", "连接失败", "关闭助理", "通知唤醒", "初始化机器人");
         rootQuery.mustNot(rs);
 
         searchSourceBuilder.size(0);
@@ -382,10 +382,10 @@ public class TjTestWeek {
 
                 objList.add(mapval);
             });
-
-            result.put(bucket.getKeyAsString(), objList);
+            if (!"32101".equals(bucket.getKeyAsString())) {
+                result.put(bucket.getKeyAsString(), objList);
+            }
         }
-
         System.out.println(JSON.toJSONString(result));
 
         List<String> proList = Arrays.asList("rs", "yyhx", "zs", "zl");
@@ -421,7 +421,7 @@ public class TjTestWeek {
                 dataList.forEach(item -> {
                     Object val = total.get(k);
                     if (val == null) {
-                        total.put(k, 0L);
+                        total.put(k, item.get(k));
                     } else {
                         long l = Long.valueOf(val.toString()) + Long.valueOf(item.get(k).toString());
                         total.put(k, l);
@@ -433,12 +433,37 @@ public class TjTestWeek {
 
         System.out.println(JSON.toJSONString(dataList));
 
+        dataList.forEach(v -> {
+            String code = v.get("mgtOrgCode").toString();
+            String name = codeName.get(code);
+            if (StringUtils.isNotBlank(name)) {
+                v.put("mgtOrgCode", name);
+            }
+        });
+
         byte[] stream = DynamicEasyExcelExportUtils.exportExcelFile(headColumnMap, dataList);
-        FileOutputStream outputStream = new FileOutputStream(path + "地市明细.xlsx");
+        FileOutputStream outputStream = new FileOutputStream(path + "地市明细2.xlsx");
         outputStream.write(stream);
         outputStream.close();
 
     }
+
+    Map<String, String> codeName = new HashMap<String, String>() {{
+        put("32401", "南京");
+        put("32402", "无锡");
+        put("32403", "徐州");
+        put("32404", "常州");
+        put("32405", "苏州");
+        put("32406", "南通");
+        put("32407", "连云港");
+        put("32408", "淮安");
+        put("32409", "盐城");
+        put("32410", "扬州");
+        put("32411", "镇江");
+        put("32412", "泰州");
+        put("32413", "宿迁");
+    }};
+
 
 //    @Test
 //    public void test() throws Exception {
