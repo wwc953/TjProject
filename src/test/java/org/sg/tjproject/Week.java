@@ -40,6 +40,7 @@ import org.junit.jupiter.api.Test;
 import org.sg.tjproject.bean.ExpVOWeek;
 import org.sg.tjproject.bean.IndexOrNameData;
 import org.sg.tjproject.utils.DynamicEasyExcelExportUtils;
+import org.sg.tjproject.utils.MgtOrgUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.core.io.Resource;
@@ -406,10 +407,7 @@ public class Week {
 
         dataList.forEach(v -> {
             String code = v.get("mgtOrgCode").toString();
-            String name = codeName.get(code);
-            if (StringUtils.isNotBlank(name)) {
-                v.put("mgtOrgCode", name);
-            }
+            v.put("mgtOrgCode", MgtOrgUtils.getCodeName(code));
         });
 
         byte[] stream = DynamicEasyExcelExportUtils.exportExcelFile(headColumnMap, dataList);
@@ -418,22 +416,6 @@ public class Week {
         outputStream.close();
 
     }
-
-    Map<String, String> codeName = new HashMap<String, String>() {{
-        put("32401", "南京");
-        put("32402", "无锡");
-        put("32403", "徐州");
-        put("32404", "常州");
-        put("32405", "苏州");
-        put("32406", "南通");
-        put("32407", "连云港");
-        put("32408", "淮安");
-        put("32409", "盐城");
-        put("32410", "扬州");
-        put("32411", "镇江");
-        put("32412", "泰州");
-        put("32413", "宿迁");
-    }};
 
 
 //    @Test

@@ -39,6 +39,7 @@ import org.elasticsearch.search.builder.SearchSourceBuilder;
 import org.junit.jupiter.api.Test;
 import org.sg.tjproject.bean.ExpVO;
 import org.sg.tjproject.bean.IndexOrNameData;
+import org.sg.tjproject.utils.MgtOrgUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
@@ -128,8 +129,12 @@ public class CityDay {
         ParsedStringTerms mgtorgAgg = searchResponse.getAggregations().get("mgtorg_agg");
         List<? extends Terms.Bucket> buckets = mgtorgAgg.getBuckets();
         for (Terms.Bucket bucket : buckets) {
+            String mgtOrgCode = bucket.getKeyAsString();
+            if ("32101".equals(mgtOrgCode)) {
+                continue;
+            }
             ExpVO expVO = new ExpVO();
-            expVO.setMgtOrgCode(bucket.getKeyAsString());
+            expVO.setMgtOrgCode(mgtOrgCode);
             expVO.setSyrc(bucket.getDocCount());
             Map<String, Aggregation> map = bucket.getAggregations().asMap();
             ParsedCardinality dis_rs = (ParsedCardinality) map.get("dis_rs");
@@ -154,7 +159,7 @@ public class CityDay {
         System.out.println(JSON.toJSONString(result));
 
         ExpVO all = new ExpVO();
-        all.setMgtOrgCodeName("合计");
+        all.setMgtOrgCode("合计");
         List<String> proList = Arrays.asList("syrs", "syrc", "zczyfz", "gzp", "zswds", "ckzb", "zygd");
         result.forEach(v -> {
             for (String key : proList) {
@@ -168,6 +173,10 @@ public class CityDay {
         });
         result.add(all);
         System.out.println("da==>" + JSON.toJSONString(result));
+
+        result.forEach(v -> {
+            v.setMgtOrgCodeName(MgtOrgUtils.getCodeName(v.getMgtOrgCode()));
+        });
 
         String fileName = path + day + "全省.xlsx";
         EasyExcel.write(fileName, ExpVO.class).useDefaultStyle(false).sheet("").doWrite(result);
@@ -250,8 +259,6 @@ public class CityDay {
         }
         return hasFailures;
     }
-
-
 
 
 }
