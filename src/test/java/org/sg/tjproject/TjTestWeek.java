@@ -69,7 +69,7 @@ public class TjTestWeek {
     ResourceLoader resourceLoader;
 
     @Test
-    public void doAll() throws Exception {
+    public void initAll() throws Exception {
         createIndex();
         Resource resource = resourceLoader.getResource("classpath:xlsx2/");
         File[] files = resource.getFile().listFiles();
@@ -313,8 +313,8 @@ public class TjTestWeek {
         SearchRequest searchRequest = new SearchRequest(index);
         SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
         BoolQueryBuilder rootQuery = QueryBuilders.boolQuery();
-//        TermsQueryBuilder rs = QueryBuilders.termsQuery("operView.keyword", "退出机器人", "连接成功", "连接失败", "关闭助理", "通知唤醒", "初始化机器人");
-//        rootQuery.mustNot(rs);
+        TermsQueryBuilder rs = QueryBuilders.termsQuery("mgtOrgCode.keyword", "32101");
+        rootQuery.mustNot(rs);
 
         searchSourceBuilder.size(0);
         searchSourceBuilder.query(rootQuery);
@@ -360,10 +360,6 @@ public class TjTestWeek {
         ParsedStringTerms mgtorgAgg = searchResponse.getAggregations().get("mgtorg_agg");
         List<? extends Terms.Bucket> buckets = mgtorgAgg.getBuckets();
         for (Terms.Bucket bucket : buckets) {
-//            ExpVOWeek expVO = new ExpVOWeek();
-//            expVO.setMgtOrgCode(bucket.getKeyAsString());
-//            expVO.setSyrc(bucket.getDocCount());
-
             List<Map<String, Object>> objList = new ArrayList<>();
             ParsedStringTerms timeDatehis = (ParsedStringTerms) bucket.getAggregations().getAsMap().get("time_datehis");
             timeDatehis.getBuckets().stream().forEach(v -> {
@@ -393,19 +389,20 @@ public class TjTestWeek {
         System.out.println(JSON.toJSONString(result));
 
         List<String> proList = Arrays.asList("rs", "yyhx", "zs", "zl");
-        LinkedHashMap<String, String> headColumnMap = Maps.newLinkedHashMap();
+        List<String> proNameList = Arrays.asList("日均使用人数", "语音唤醒", "知识类", "指令");
+        LinkedHashMap<String, String> headColumnMap = new LinkedHashMap<>();
         headColumnMap.put("mgtOrgCode", "单位");
         result.forEach((k, dateList) -> {
-            for (String key : proList) {
+            for (int i = 0; i < proList.size(); i++) {
                 for (Map<String, Object> obj : dateList) {
-                    headColumnMap.put(key + obj.get("date").toString(), key + "," + obj.get("date").toString());
+                    headColumnMap.put(proList.get(i) + obj.get("date").toString(), proNameList.get(i) + "," + obj.get("date").toString());
                 }
             }
         });
 
         List<Map<String, Object>> dataList = new ArrayList<>();
         result.forEach((k, dateList) -> {
-            Map<String, Object> dataMap = Maps.newHashMap();
+            Map<String, Object> dataMap = new LinkedHashMap<>();
             dataMap.put("mgtOrgCode", k);
             for (String key : proList) {
                 for (Map<String, Object> obj : dateList) {
@@ -415,38 +412,59 @@ public class TjTestWeek {
             dataList.add(dataMap);
         });
 
+        System.out.println(JSON.toJSONString(dataList));
+
+        Map<String, Object> total = new LinkedHashMap<>();
+        total.put("mgtOrgCode", "合计");
+        dataList.get(0).forEach((k, v) -> {
+            if (!"mgtOrgCode".equals(k)) {
+                dataList.forEach(item -> {
+                    Object val = total.get(k);
+                    if (val == null) {
+                        total.put(k, 0L);
+                    } else {
+                        long l = Long.valueOf(val.toString()) + Long.valueOf(item.get(k).toString());
+                        total.put(k, l);
+                    }
+                });
+            }
+        });
+        dataList.add(total);
+
+        System.out.println(JSON.toJSONString(dataList));
+
         byte[] stream = DynamicEasyExcelExportUtils.exportExcelFile(headColumnMap, dataList);
-        FileOutputStream outputStream = new FileOutputStream(new File(path + "easyexcel-export-user5.xlsx"));
+        FileOutputStream outputStream = new FileOutputStream(path + "地市明细.xlsx");
         outputStream.write(stream);
         outputStream.close();
 
     }
 
-    @Test
-    public void test() throws Exception {
-        LinkedHashMap<String, String> headColumnMap = Maps.newLinkedHashMap();
-        headColumnMap.put("mgtOrgCode", "单位");
-        for (int i = 0; i < 5; i++) {
-            headColumnMap.put("name" + i, "学生数据1,姓名" + i);
-        }
-        for (int i = 0; i < 5; i++) {
-            headColumnMap.put("sex" + i, "学生数据2,性别" + i);
-        }
-
-        List<Map<String, Object>> dataList = new ArrayList<>();
-        for (int i = 0; i < 5; i++) {
-            Map<String, Object> dataMap = Maps.newHashMap();
-            dataMap.put("mgtOrgCode", "一年级");
-            dataMap.put("name" + i, "张三99" + i);
-            dataMap.put("sex" + i, "男" + i);
-            dataList.add(dataMap);
-        }
-
-        byte[] stream = DynamicEasyExcelExportUtils.exportExcelFile(headColumnMap, dataList);
-        FileOutputStream outputStream = new FileOutputStream(new File(path + "easyexcel-export-user5.xlsx"));
-        outputStream.write(stream);
-        outputStream.close();
-    }
+//    @Test
+//    public void test() throws Exception {
+//        LinkedHashMap<String, String> headColumnMap = Maps.newLinkedHashMap();
+//        headColumnMap.put("mgtOrgCode", "单位");
+//        for (int i = 0; i < 5; i++) {
+//            headColumnMap.put("name" + i, "学生数据1,姓名" + i);
+//        }
+//        for (int i = 0; i < 5; i++) {
+//            headColumnMap.put("sex" + i, "学生数据2,性别" + i);
+//        }
+//
+//        List<Map<String, Object>> dataList = new ArrayList<>();
+//        for (int i = 0; i < 5; i++) {
+//            Map<String, Object> dataMap = Maps.newHashMap();
+//            dataMap.put("mgtOrgCode", "一年级");
+//            dataMap.put("name" + i, "张三99" + i);
+//            dataMap.put("sex" + i, "男" + i);
+//            dataList.add(dataMap);
+//        }
+//
+//        byte[] stream = DynamicEasyExcelExportUtils.exportExcelFile(headColumnMap, dataList);
+//        FileOutputStream outputStream = new FileOutputStream(new File(path + "easyexcel-export-user5.xlsx"));
+//        outputStream.write(stream);
+//        outputStream.close();
+//    }
 
 
     public Script getMgtOrgCodeScript(int length) {
