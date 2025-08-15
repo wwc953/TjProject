@@ -313,12 +313,9 @@ public class Week {
         FilterAggregationBuilder filterZs = AggregationBuilders.filter("filter_zs", zs);
         dateAgg.subAggregation(filterZs);
 
-        //指令
-//        dateAgg.subAggregation(AggregationBuilders.count("count_zl").script(new Script(ScriptType.INLINE, Script.DEFAULT_SCRIPT_LANG,
-//                "def field_value = doc['operView.keyword'].value; def list_values = ['退出机器人','连接成功','连接失败','关闭助理','通知唤醒','初始化机器人','点击唤醒','语音唤醒']; if (list_values.contains(field_value)) { return false; } else { return true; }", Collections.emptyMap(), Collections.emptyMap())
-//        ));
-
-        FilterAggregationBuilder count_bul = AggregationBuilders.filter("count_zl", QueryBuilders.boolQuery().mustNot(QueryBuilders.termsQuery("operView.keyword", "退出机器人", "连接成功", "连接失败", "关闭助理", "通知唤醒", "初始化机器人", "点击唤醒", "语音唤醒")));
+        FilterAggregationBuilder count_bul = AggregationBuilders.filter("count_zl",
+                QueryBuilders.boolQuery().mustNot(QueryBuilders.termsQuery("operView.keyword",
+                        "退出机器人", "连接成功", "连接失败", "关闭助理", "通知唤醒", "初始化机器人", "点击唤醒", "语音唤醒")));
         dateAgg.subAggregation(count_bul);
         mgt.subAggregation(dateAgg);
 
