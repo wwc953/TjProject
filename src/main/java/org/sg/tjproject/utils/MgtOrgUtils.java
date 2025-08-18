@@ -1,9 +1,18 @@
 package org.sg.tjproject.utils;
 
+import com.alibaba.excel.EasyExcel;
+import com.alibaba.excel.context.AnalysisContext;
+import com.alibaba.excel.read.listener.ReadListener;
+import lombok.SneakyThrows;
 import org.apache.commons.lang3.StringUtils;
+import org.sg.tjproject.bean.ExpVO;
+import org.sg.tjproject.bean.MgtOrgDTO;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 public class MgtOrgUtils {
 
@@ -46,4 +55,24 @@ public class MgtOrgUtils {
         }
         return name;
     }
+
+    public Map<String, MgtOrgDTO> getMgtOrgCode() {
+        return readMgtOrgCodeList().stream().collect(Collectors.toMap(MgtOrgDTO::getMgtOrgCode, v -> v));
+    }
+
+    public List<MgtOrgDTO> readMgtOrgCodeList() {
+        List<MgtOrgDTO> result = new ArrayList<>(2000);
+        EasyExcel.read("src/main/resources/doc/组织树数据.xls", MgtOrgDTO.class, new ReadListener<MgtOrgDTO>() {
+            @Override
+            public void invoke(MgtOrgDTO dto, AnalysisContext analysisContext) {
+                result.add(dto);
+            }
+
+            @Override
+            public void doAfterAllAnalysed(AnalysisContext analysisContext) {
+            }
+        }).sheet().doRead();
+        return result;
+    }
+
 }
