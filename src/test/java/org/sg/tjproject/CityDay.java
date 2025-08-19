@@ -95,9 +95,21 @@ public class CityDay {
         FilterAggregationBuilder filterGzp = AggregationBuilders.filter("filter_gzp", gzp);
         mgt.subAggregation(filterGzp);
 
-        TermsQueryBuilder zc = QueryBuilders.termsQuery("operView.keyword", "一键扫码", "扫码装拆");
+//        TermsQueryBuilder zc = QueryBuilders.termsQuery("operView.keyword", "一键扫码", "扫码装拆");
+//        FilterAggregationBuilder filterSm = AggregationBuilders.filter("filter_zc", zc);
+//        mgt.subAggregation(filterSm);
+        BoolQueryBuilder zc = QueryBuilders.boolQuery()
+                .must(QueryBuilders.termsQuery("operView.keyword", "一键扫码", "扫码装拆"))
+                .must(QueryBuilders.termsQuery("appNo.keyword", "_"));
         FilterAggregationBuilder filterSm = AggregationBuilders.filter("filter_zc", zc);
         mgt.subAggregation(filterSm);
+
+        BoolQueryBuilder znzscll = QueryBuilders.boolQuery()
+                .must(QueryBuilders.termsQuery("operView.keyword", "扫码装拆"))
+                .mustNot(QueryBuilders.termsQuery("appNo.keyword", "_"));
+        FilterAggregationBuilder znzscll_dis = AggregationBuilders.filter("filter_znzscll", znzscll)
+                .subAggregation(AggregationBuilders.cardinality("znzscll_dis").field("appNo.keyword"));
+        mgt.subAggregation(znzscll_dis);
 
         TermsQueryBuilder zs = QueryBuilders.termsQuery("operView.keyword", "查询知识库", "查询知识详情", "知识考试", "大模型数据", "练习题库");
         FilterAggregationBuilder filterZs = AggregationBuilders.filter("filter_zs", zs);
@@ -139,6 +151,10 @@ public class CityDay {
             ParsedFilter filter_zc = (ParsedFilter) map.get("filter_zc");
             expVO.setZczyfz(filter_zc.getDocCount());
 
+            ParsedFilter filter_znzscll = (ParsedFilter) map.get("filter_znzscll");
+            ParsedCardinality aggregation = (ParsedCardinality) filter_znzscll.getAggregations().asList().get(0);
+            expVO.setZnzscll(aggregation.getValue());
+
             ParsedFilter filter_zs = (ParsedFilter) map.get("filter_zs");
             expVO.setZswds(filter_zs.getDocCount());
 
@@ -155,7 +171,7 @@ public class CityDay {
         ExpVO all = new ExpVO();
         all.setMgtOrgCode("合计");
         all.setMgtOrgCodeName("合计");
-        List<String> proList = Arrays.asList("syrs", "syrc", "zczyfz", "gzp", "zswds", "ckzb", "zygd");
+        List<String> proList = Arrays.asList("syrs", "syrc", "zczyfz", "gzp", "zswds", "ckzb", "zygd", "znzscll");
         result.forEach(v -> {
             for (String key : proList) {
                 try {

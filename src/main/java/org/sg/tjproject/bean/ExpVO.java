@@ -24,4 +24,6 @@ public class ExpVO {
     private Long ckzb = 0L;
     @ExcelProperty("作业工单")
     private Long zygd = 0L;
+    @ExcelProperty("装拆智能助手处理量")
+    private Long znzscll = 0L;
 }
