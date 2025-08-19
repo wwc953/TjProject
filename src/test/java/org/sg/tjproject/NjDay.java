@@ -26,8 +26,6 @@ import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.elasticsearch.index.query.PrefixQueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.index.query.TermsQueryBuilder;
-import org.elasticsearch.script.Script;
-import org.elasticsearch.script.ScriptType;
 import org.elasticsearch.search.aggregations.Aggregation;
 import org.elasticsearch.search.aggregations.AggregationBuilders;
 import org.elasticsearch.search.aggregations.BucketOrder;
@@ -47,15 +45,15 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
-import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
 
 @Slf4j
 @SpringBootTest
 public class NjDay {
-    String day = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"));
+    String fileName = ContantUtil.fileName;
+    //    String day = LocalDate.now().minusDays(1).format(DateTimeFormatter.ofPattern("yyyyMMdd"));
+    String day = fileName.split("\\.")[0].replaceAll("-", "");
     String index = "loglnfo_" + day;
     String type = "log";
     String path = "src/main/resources/xlsx/";
@@ -65,7 +63,6 @@ public class NjDay {
 
     @Test
     public void doAll() throws Exception {
-        String fileName = "2025-08-19.xlsx";
         createIndex();
         importData(path + fileName);
     }

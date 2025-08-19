@@ -43,8 +43,6 @@ import org.sg.tjproject.utils.MgtOrgUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
-import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -53,7 +51,10 @@ import java.util.Map;
 @Slf4j
 @SpringBootTest
 public class CityDay {
-    String day = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"));
+    //    String day = LocalDate.now().minusDays(1).format(DateTimeFormatter.ofPattern("yyyyMMdd"));
+    String fileName = ContantUtil.fileName;
+    //    String day = LocalDate.now().minusDays(1).format(DateTimeFormatter.ofPattern("yyyyMMdd"));
+    String day = fileName.split("\\.")[0].replaceAll("-", "");
     String index = "loglnfo_" + day;
     String type = "log";
     String path = "src/main/resources/xlsx/";
@@ -63,7 +64,6 @@ public class CityDay {
 
     @Test
     public void doAll() throws Exception {
-        String fileName = "2025-08-14.xlsx";
         createIndex();
         importData(path + fileName);
     }
