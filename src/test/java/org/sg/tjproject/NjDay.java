@@ -69,24 +69,23 @@ public class NjDay {
 
     @Test
     public void all() throws Exception {
-        expDayNj();
-        expDayWx();
+        Arrays.asList("32401", "32402").forEach(v -> {
+            try {
+                expDay(v);
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        });
     }
 
-    /**
-     * 南京每日统计
-     *
-     * @throws Exception
-     */
-    @Test
-    public void expDayNj() throws Exception {
+    public void expDay(String mgtOrgCode) throws Exception {
         System.out.println(index);
         SearchRequest searchRequest = new SearchRequest(index);
         SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
         BoolQueryBuilder rootQuery = QueryBuilders.boolQuery();
         TermsQueryBuilder rs = QueryBuilders.termsQuery("operView.keyword", "退出机器人", "连接成功", "连接失败", "关闭助理", "通知唤醒", "初始化机器人");
         rootQuery.mustNot(rs);
-        PrefixQueryBuilder orgNoListQu = QueryBuilders.prefixQuery("mgtOrgCode.keyword", "32401");
+        PrefixQueryBuilder orgNoListQu = QueryBuilders.prefixQuery("mgtOrgCode.keyword", mgtOrgCode);
         rootQuery.filter(orgNoListQu);
         searchSourceBuilder.size(0);
         searchSourceBuilder.query(rootQuery);
@@ -177,7 +176,7 @@ public class NjDay {
 
         //读取模版
         List<ExpVO> dataList = ListUtils.newArrayListWithExpectedSize(500);
-        EasyExcel.read(path + "模版.xlsx", ExpVO.class, new ReadListener<ExpVO>() {
+        EasyExcel.read(path + "模版" + mgtOrgCode + ".xlsx", ExpVO.class, new ReadListener<ExpVO>() {
             @SneakyThrows
             @Override
             public void invoke(ExpVO dto, AnalysisContext analysisContext) {
@@ -217,167 +216,166 @@ public class NjDay {
                     throw new RuntimeException(e);
                 }
             }
-//            v.setMgtOrgCodeName(MgtOrgUtils.getCodeName(v.getMgtOrgCode()));
         });
         dataList.add(all);
         System.out.println("da==>" + JSON.toJSONString(dataList));
 
-        String fileName = path + day + "南京.xlsx";
+        String fileName = path + day + MgtOrgUtils.getCodeName(mgtOrgCode) + ".xlsx";
         EasyExcel.write(fileName, ExpVO.class).useDefaultStyle(false).sheet("").doWrite(dataList);
     }
 
-    /**
-     * 无锡每日统计
-     *
-     * @throws Exception
-     */
-    @Test
-    public void expDayWx() throws Exception {
-        System.out.println(index);
-        SearchRequest searchRequest = new SearchRequest(index);
-        SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
-        BoolQueryBuilder rootQuery = QueryBuilders.boolQuery();
-        TermsQueryBuilder rs = QueryBuilders.termsQuery("operView.keyword", "退出机器人", "连接成功", "连接失败", "关闭助理", "通知唤醒", "初始化机器人");
-        rootQuery.mustNot(rs);
-        PrefixQueryBuilder orgNoListQu = QueryBuilders.prefixQuery("mgtOrgCode.keyword", "32402");
-        rootQuery.filter(orgNoListQu);
-        searchSourceBuilder.size(0);
-        searchSourceBuilder.query(rootQuery);
-
-        TermsAggregationBuilder mgt = AggregationBuilders.terms("mgtorg_agg")
-                .field("countryCode.keyword").size(2000).order(BucketOrder.key(true));
-
-        CardinalityAggregationBuilder rsf = AggregationBuilders.cardinality("dis_rs").field("handleId.keyword");
-        mgt.subAggregation(rsf);
-
-        TermsQueryBuilder gzp = QueryBuilders.termsQuery("operView.keyword", "查询作业计划", "制定作业计划", "创建作业计划", "查询问题制作工作票", "查询我的工作票", "工作票安全交底", "工作票编制", "工作票签发", "工作票许可", "工作票终结", "我的工作票", "许可工作票", "终结工作票");
-        FilterAggregationBuilder filterGzp = AggregationBuilders.filter("filter_gzp", gzp);
-        mgt.subAggregation(filterGzp);
-
-//        TermsQueryBuilder zc = QueryBuilders.termsQuery("operView.keyword", "一键扫码", "扫码装拆");
+//    /**
+//     * 无锡每日统计
+//     *
+//     * @throws Exception
+//     */
+//    @Test
+//    public void expDayWx() throws Exception {
+//        System.out.println(index);
+//        SearchRequest searchRequest = new SearchRequest(index);
+//        SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
+//        BoolQueryBuilder rootQuery = QueryBuilders.boolQuery();
+//        TermsQueryBuilder rs = QueryBuilders.termsQuery("operView.keyword", "退出机器人", "连接成功", "连接失败", "关闭助理", "通知唤醒", "初始化机器人");
+//        rootQuery.mustNot(rs);
+//        PrefixQueryBuilder orgNoListQu = QueryBuilders.prefixQuery("mgtOrgCode.keyword", "32402");
+//        rootQuery.filter(orgNoListQu);
+//        searchSourceBuilder.size(0);
+//        searchSourceBuilder.query(rootQuery);
+//
+//        TermsAggregationBuilder mgt = AggregationBuilders.terms("mgtorg_agg")
+//                .field("countryCode.keyword").size(2000).order(BucketOrder.key(true));
+//
+//        CardinalityAggregationBuilder rsf = AggregationBuilders.cardinality("dis_rs").field("handleId.keyword");
+//        mgt.subAggregation(rsf);
+//
+//        TermsQueryBuilder gzp = QueryBuilders.termsQuery("operView.keyword", "查询作业计划", "制定作业计划", "创建作业计划", "查询问题制作工作票", "查询我的工作票", "工作票安全交底", "工作票编制", "工作票签发", "工作票许可", "工作票终结", "我的工作票", "许可工作票", "终结工作票");
+//        FilterAggregationBuilder filterGzp = AggregationBuilders.filter("filter_gzp", gzp);
+//        mgt.subAggregation(filterGzp);
+//
+////        TermsQueryBuilder zc = QueryBuilders.termsQuery("operView.keyword", "一键扫码", "扫码装拆");
+////        FilterAggregationBuilder filterSm = AggregationBuilders.filter("filter_zc", zc);
+////        mgt.subAggregation(filterSm);
+//        BoolQueryBuilder zc = QueryBuilders.boolQuery()
+//                .must(QueryBuilders.termsQuery("operView.keyword", "一键扫码", "扫码装拆"))
+//                .must(QueryBuilders.termsQuery("appNo.keyword", "_"));
 //        FilterAggregationBuilder filterSm = AggregationBuilders.filter("filter_zc", zc);
 //        mgt.subAggregation(filterSm);
-        BoolQueryBuilder zc = QueryBuilders.boolQuery()
-                .must(QueryBuilders.termsQuery("operView.keyword", "一键扫码", "扫码装拆"))
-                .must(QueryBuilders.termsQuery("appNo.keyword", "_"));
-        FilterAggregationBuilder filterSm = AggregationBuilders.filter("filter_zc", zc);
-        mgt.subAggregation(filterSm);
-
-        BoolQueryBuilder znzscll = QueryBuilders.boolQuery()
-                .must(QueryBuilders.termsQuery("operView.keyword", "扫码装拆"))
-                .mustNot(QueryBuilders.termsQuery("appNo.keyword", "_"));
-        FilterAggregationBuilder znzscll_dis = AggregationBuilders.filter("filter_znzscll", znzscll)
-                .subAggregation(AggregationBuilders.cardinality("znzscll_dis").field("appNo.keyword"));
-        mgt.subAggregation(znzscll_dis);
-
-        TermsQueryBuilder zs = QueryBuilders.termsQuery("operView.keyword", "查询知识库", "查询知识详情", "知识考试", "大模型数据", "练习题库");
-        FilterAggregationBuilder filterZs = AggregationBuilders.filter("filter_zs", zs);
-        mgt.subAggregation(filterZs);
-
-        TermsQueryBuilder ckzb = QueryBuilders.termsQuery("operView.keyword", "工作总览", "查询线损", "查询欠费", "查询台区异常",
-                "查询采集异常", "欠费已停电用户", "临时用电超期用户", "断相指标", "减容预警用户",
-                "临时用电超期预警用户", "综合线损", "电费回收率");
-        FilterAggregationBuilder filterckzb = AggregationBuilders.filter("filter_ckzb", ckzb);
-        mgt.subAggregation(filterckzb);
-
-        TermsQueryBuilder zygd = QueryBuilders.termsQuery("operView.keyword",
-                "待办工单", "附近工单", "当前位置工单", "规划工单路径", "查询更名工单", "查询居民峰谷电变更工单",
-                "查询定比定量变更工单", "查询装拆调试工单", "查询上门服务工单", "查询农电工单", "规划工作", "创建三入走访工单"
-                , "创建充电设施维护工单", "创建巡视检查工单", "创建光伏设施维护工单");
-        FilterAggregationBuilder filterzygd = AggregationBuilders.filter("filter_zygd", zygd);
-        mgt.subAggregation(filterzygd);
-
-        searchSourceBuilder.aggregation(mgt);
-
-        searchRequest.source(searchSourceBuilder);
-        System.out.println(searchRequest.source().toString());
-
-        SearchResponse searchResponse = restHighLevelClient.search(searchRequest);
-        System.out.println(searchResponse);
-
-        List<ExpVO> result = new ArrayList<>();
-        ParsedStringTerms mgtorgAgg = searchResponse.getAggregations().get("mgtorg_agg");
-        List<? extends Terms.Bucket> buckets = mgtorgAgg.getBuckets();
-        for (Terms.Bucket bucket : buckets) {
-            ExpVO expVO = new ExpVO();
-            expVO.setMgtOrgCode(bucket.getKeyAsString());
-            expVO.setSyrc(bucket.getDocCount());
-            Map<String, Aggregation> map = bucket.getAggregations().asMap();
-            ParsedCardinality dis_rs = (ParsedCardinality) map.get("dis_rs");
-            expVO.setSyrs(dis_rs.getValue());
-            ParsedFilter filter_gzp = (ParsedFilter) map.get("filter_gzp");
-            expVO.setGzp(filter_gzp.getDocCount());
-
-            ParsedFilter filter_zc = (ParsedFilter) map.get("filter_zc");
-            expVO.setZczyfz(filter_zc.getDocCount());
-
-            ParsedFilter filter_znzscll = (ParsedFilter) map.get("filter_znzscll");
-            ParsedCardinality aggregation = (ParsedCardinality) filter_znzscll.getAggregations().asList().get(0);
-            expVO.setZnzscll(aggregation.getValue());
-
-            ParsedFilter filter_zs = (ParsedFilter) map.get("filter_zs");
-            expVO.setZswds(filter_zs.getDocCount());
-
-            ParsedFilter filter_ckzb = (ParsedFilter) map.get("filter_ckzb");
-            expVO.setCkzb(filter_ckzb.getDocCount());
-
-            ParsedFilter filter_zygd = (ParsedFilter) map.get("filter_zygd");
-            expVO.setZygd(filter_zygd.getDocCount());
-            result.add(expVO);
-        }
-
-        System.out.println(JSON.toJSONString(result));
-
-        //读取模版
-        List<ExpVO> dataList = ListUtils.newArrayListWithExpectedSize(500);
-        EasyExcel.read(path + "模版32402.xlsx", ExpVO.class, new ReadListener<ExpVO>() {
-            @SneakyThrows
-            @Override
-            public void invoke(ExpVO dto, AnalysisContext analysisContext) {
-                dataList.add(dto);
-            }
-
-            @SneakyThrows
-            @Override
-            public void doAfterAllAnalysed(AnalysisContext analysisContext) {
-
-            }
-        }).sheet().doRead();
-
-
-        Map<String, ExpVO> collect = result.stream().collect(Collectors.toMap(ExpVO::getMgtOrgCode, v -> v));
-        dataList.forEach(v -> {
-            ExpVO expVO = collect.get(v.getMgtOrgCode());
-            if (expVO != null) {
-                String mgtOrgCodeName = v.getMgtOrgCodeName();
-                BeanUtils.copyProperties(expVO, v);
-                v.setMgtOrgCodeName(mgtOrgCodeName);
-            } else {
-                System.out.println(v.getMgtOrgCode() + "--无数据");
-            }
-        });
-
-        ExpVO all = new ExpVO();
-        all.setMgtOrgCode("合计");
-        all.setMgtOrgCodeName("合计");
-        List<String> proList = Arrays.asList("syrs", "syrc", "zczyfz", "gzp", "zswds", "ckzb", "zygd", "znzscll");
-        dataList.forEach(v -> {
-            for (String key : proList) {
-                try {
-                    long value = (Long) PropertyUtils.getProperty(all, key) + (Long) PropertyUtils.getProperty(v, key);
-                    PropertyUtils.setProperty(all, key, value);
-                } catch (Exception e) {
-                    throw new RuntimeException(e);
-                }
-            }
-//            v.setMgtOrgCodeName(MgtOrgUtils.getCodeName(v.getMgtOrgCode()));
-        });
-        dataList.add(all);
-        System.out.println("da==>" + JSON.toJSONString(dataList));
-
-        String fileName = path + day + "无锡.xlsx";
-        EasyExcel.write(fileName, ExpVO.class).useDefaultStyle(false).sheet("").doWrite(dataList);
-    }
+//
+//        BoolQueryBuilder znzscll = QueryBuilders.boolQuery()
+//                .must(QueryBuilders.termsQuery("operView.keyword", "扫码装拆"))
+//                .mustNot(QueryBuilders.termsQuery("appNo.keyword", "_"));
+//        FilterAggregationBuilder znzscll_dis = AggregationBuilders.filter("filter_znzscll", znzscll)
+//                .subAggregation(AggregationBuilders.cardinality("znzscll_dis").field("appNo.keyword"));
+//        mgt.subAggregation(znzscll_dis);
+//
+//        TermsQueryBuilder zs = QueryBuilders.termsQuery("operView.keyword", "查询知识库", "查询知识详情", "知识考试", "大模型数据", "练习题库");
+//        FilterAggregationBuilder filterZs = AggregationBuilders.filter("filter_zs", zs);
+//        mgt.subAggregation(filterZs);
+//
+//        TermsQueryBuilder ckzb = QueryBuilders.termsQuery("operView.keyword", "工作总览", "查询线损", "查询欠费", "查询台区异常",
+//                "查询采集异常", "欠费已停电用户", "临时用电超期用户", "断相指标", "减容预警用户",
+//                "临时用电超期预警用户", "综合线损", "电费回收率");
+//        FilterAggregationBuilder filterckzb = AggregationBuilders.filter("filter_ckzb", ckzb);
+//        mgt.subAggregation(filterckzb);
+//
+//        TermsQueryBuilder zygd = QueryBuilders.termsQuery("operView.keyword",
+//                "待办工单", "附近工单", "当前位置工单", "规划工单路径", "查询更名工单", "查询居民峰谷电变更工单",
+//                "查询定比定量变更工单", "查询装拆调试工单", "查询上门服务工单", "查询农电工单", "规划工作", "创建三入走访工单"
+//                , "创建充电设施维护工单", "创建巡视检查工单", "创建光伏设施维护工单");
+//        FilterAggregationBuilder filterzygd = AggregationBuilders.filter("filter_zygd", zygd);
+//        mgt.subAggregation(filterzygd);
+//
+//        searchSourceBuilder.aggregation(mgt);
+//
+//        searchRequest.source(searchSourceBuilder);
+//        System.out.println(searchRequest.source().toString());
+//
+//        SearchResponse searchResponse = restHighLevelClient.search(searchRequest);
+//        System.out.println(searchResponse);
+//
+//        List<ExpVO> result = new ArrayList<>();
+//        ParsedStringTerms mgtorgAgg = searchResponse.getAggregations().get("mgtorg_agg");
+//        List<? extends Terms.Bucket> buckets = mgtorgAgg.getBuckets();
+//        for (Terms.Bucket bucket : buckets) {
+//            ExpVO expVO = new ExpVO();
+//            expVO.setMgtOrgCode(bucket.getKeyAsString());
+//            expVO.setSyrc(bucket.getDocCount());
+//            Map<String, Aggregation> map = bucket.getAggregations().asMap();
+//            ParsedCardinality dis_rs = (ParsedCardinality) map.get("dis_rs");
+//            expVO.setSyrs(dis_rs.getValue());
+//            ParsedFilter filter_gzp = (ParsedFilter) map.get("filter_gzp");
+//            expVO.setGzp(filter_gzp.getDocCount());
+//
+//            ParsedFilter filter_zc = (ParsedFilter) map.get("filter_zc");
+//            expVO.setZczyfz(filter_zc.getDocCount());
+//
+//            ParsedFilter filter_znzscll = (ParsedFilter) map.get("filter_znzscll");
+//            ParsedCardinality aggregation = (ParsedCardinality) filter_znzscll.getAggregations().asList().get(0);
+//            expVO.setZnzscll(aggregation.getValue());
+//
+//            ParsedFilter filter_zs = (ParsedFilter) map.get("filter_zs");
+//            expVO.setZswds(filter_zs.getDocCount());
+//
+//            ParsedFilter filter_ckzb = (ParsedFilter) map.get("filter_ckzb");
+//            expVO.setCkzb(filter_ckzb.getDocCount());
+//
+//            ParsedFilter filter_zygd = (ParsedFilter) map.get("filter_zygd");
+//            expVO.setZygd(filter_zygd.getDocCount());
+//            result.add(expVO);
+//        }
+//
+//        System.out.println(JSON.toJSONString(result));
+//
+//        //读取模版
+//        List<ExpVO> dataList = ListUtils.newArrayListWithExpectedSize(500);
+//        EasyExcel.read(path + "模版32402.xlsx", ExpVO.class, new ReadListener<ExpVO>() {
+//            @SneakyThrows
+//            @Override
+//            public void invoke(ExpVO dto, AnalysisContext analysisContext) {
+//                dataList.add(dto);
+//            }
+//
+//            @SneakyThrows
+//            @Override
+//            public void doAfterAllAnalysed(AnalysisContext analysisContext) {
+//
+//            }
+//        }).sheet().doRead();
+//
+//
+//        Map<String, ExpVO> collect = result.stream().collect(Collectors.toMap(ExpVO::getMgtOrgCode, v -> v));
+//        dataList.forEach(v -> {
+//            ExpVO expVO = collect.get(v.getMgtOrgCode());
+//            if (expVO != null) {
+//                String mgtOrgCodeName = v.getMgtOrgCodeName();
+//                BeanUtils.copyProperties(expVO, v);
+//                v.setMgtOrgCodeName(mgtOrgCodeName);
+//            } else {
+//                System.out.println(v.getMgtOrgCode() + "--无数据");
+//            }
+//        });
+//
+//        ExpVO all = new ExpVO();
+//        all.setMgtOrgCode("合计");
+//        all.setMgtOrgCodeName("合计");
+//        List<String> proList = Arrays.asList("syrs", "syrc", "zczyfz", "gzp", "zswds", "ckzb", "zygd", "znzscll");
+//        dataList.forEach(v -> {
+//            for (String key : proList) {
+//                try {
+//                    long value = (Long) PropertyUtils.getProperty(all, key) + (Long) PropertyUtils.getProperty(v, key);
+//                    PropertyUtils.setProperty(all, key, value);
+//                } catch (Exception e) {
+//                    throw new RuntimeException(e);
+//                }
+//            }
+////            v.setMgtOrgCodeName(MgtOrgUtils.getCodeName(v.getMgtOrgCode()));
+//        });
+//        dataList.add(all);
+//        System.out.println("da==>" + JSON.toJSONString(dataList));
+//
+//        String fileName = path + day + "无锡.xlsx";
+//        EasyExcel.write(fileName, ExpVO.class).useDefaultStyle(false).sheet("").doWrite(dataList);
+//    }
 
     boolean exists(String index) throws Exception {
         GetIndexRequest request = new GetIndexRequest();
